@@ -21,6 +21,15 @@ app.on('active', (event, hasVisibleWindows) => {
     }
 });
 
+app.on('will-finish-launching', () => {
+    app.on('open-file', (event, file) => {
+        const win = createWindow();
+        win.once('ready-to-show', () => {
+            openFile(win, file);
+        })
+    })
+});
+
 const windows = new Set();
 
 const createWindow = exports.createWindow = () => {
@@ -84,8 +93,33 @@ const getFileFromUser = exports.getFileFromUser = (targetWindow) => {
 
 };
 
+const saveHtml = exports.saveHtml = (targetWindow, content) => {
+    const files = dialog.showSaveDialog(targetWindow, {
+        title: 'Save Html',
+        defaultPath: app.getPath('documents'),
+        filters: [
+            {name: 'HTML Files', extensions: ['html', 'htm']}
+        ]
+    });
+
+    if (!files) {
+        return;
+    }
+
+    files.then(file => {
+        console.log(file);
+        console.log(content);
+        fs.writeFileSync(file.filePath, content);
+    });
+
+
+};
 
 const openFile = (targetWindow, file) => {
     const content = fs.readFileSync(file).toString();
+    // 我测试，加不加这行代码，最终的效果都是一致的
+    app.addRecentDocument(file);
+    targetWindow.setRepresentedFilename(file);
     targetWindow.webContents.send('file-opened', file, content);
 };
+

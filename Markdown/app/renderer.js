@@ -1,6 +1,10 @@
 const marked = require('marked');
 const {remote, ipcRenderer} = require('electron');
 const mainProcess = remote.require('./main.js');
+const path = require('path');
+
+let filePath = null;
+let originalContent = '';
 
 const markdownView = document.querySelector('#markdown');
 const htmlView = document.querySelector('#html');
@@ -16,7 +20,8 @@ const currentWindow = remote.getCurrentWindow();
 
 markdownView.addEventListener('keyup', (event) => {
     const currentContent = event.target.value;
-    renderMarkdownToHtml(currentContent)
+    renderMarkdownToHtml(currentContent);
+    updateUserInterface(currentContent !== originalContent);
 });
 
 newFileButton.addEventListener('click', () => {
@@ -27,12 +32,33 @@ openFileButton.addEventListener('click', () => {
     mainProcess.getFileFromUser(currentWindow);
 });
 
+saveHtmlButton.addEventListener('click', () => {
+    mainProcess.saveHtml(currentWindow, htmlView.innerHTML);
+});
+
 ipcRenderer.on('file-opened', (event, file, content) => {
+    filePath = file;
+    originalContent = content;
+
     markdownView.value = content;
     renderMarkdownToHtml(content);
 });
 
 const renderMarkdownToHtml = (markdown) => {
     htmlView.innerHTML = marked(markdown, {sanitize: true})
+};
+
+const updateUserInterface = (isEdited) => {
+    let title = 'Fire Sale';
+    if (filePath) {
+        title = `${path.basename(filePath)} - ${title}`;
+    }
+    if (isEdited) {
+        title = `${title} (Edited)`;
+    }
+    currentWindow.setTitle(title);
+
+    saveMarkdownButton.disabled = !isEdited;
+    revertButton.disabled = !isEdited;
 };
 
