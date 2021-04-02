@@ -115,6 +115,31 @@ const saveHtml = exports.saveHtml = (targetWindow, content) => {
 
 };
 
+
+const saveMarkdown = exports.saveMarkdown = (targetWindow, file, content) => {
+    if (!file) {
+        files = dialog.showSaveDialog(targetWindow, {
+            title: 'Save Markdown',
+            defaultPath: app.getPath('documents'),
+            filters: [
+                {name: 'Markdown Files', extensions: ['md', 'markdown']}
+            ]
+        });
+
+        if (!files) {
+            return;
+        }
+
+        files.then(tmp => {
+            fs.writeFileSync(tmp.filePath, content);
+            openFile(targetWindow, tmp.filePath);
+        });
+    }else{
+        fs.writeFileSync(file, content);
+        openFile(targetWindow, file);
+    }
+};
+
 const openFile = (targetWindow, file) => {
     const content = fs.readFileSync(file).toString();
     // 我测试，加不加这行代码，最终的效果都是一致的

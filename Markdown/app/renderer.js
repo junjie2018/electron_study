@@ -16,6 +16,22 @@ const saveHtmlButton = document.querySelector('#save-html');
 const showFileButton = document.querySelector('#show-file');
 const openInDefaultButton = document.querySelector('#open-in-default');
 
+document.addEventListener('dargstart', event => {
+    event.preventDefault();
+});
+
+document.addEventListener('dargover', event => {
+    event.preventDefault();
+});
+
+document.addEventListener('dargleave', event => {
+    event.preventDefault();
+});
+
+document.addEventListener('drop', event => {
+    event.preventDefault();
+});
+
 const currentWindow = remote.getCurrentWindow();
 
 markdownView.addEventListener('keyup', (event) => {
@@ -34,6 +50,15 @@ openFileButton.addEventListener('click', () => {
 
 saveHtmlButton.addEventListener('click', () => {
     mainProcess.saveHtml(currentWindow, htmlView.innerHTML);
+});
+
+saveMarkdownButton.addEventListener('click', () => {
+    mainProcess.saveMarkdown(currentWindow, filePath, markdownView.value);
+});
+
+revertButton.addEventListener('click', () => {
+    markdownView.value = originalContent;
+    renderMarkdownToHtml(originalContent);
 });
 
 ipcRenderer.on('file-opened', (event, file, content) => {
